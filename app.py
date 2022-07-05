@@ -36,7 +36,7 @@ def file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))            
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))            
             FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
             return redirect(url_for('file', name=filename))
     return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
