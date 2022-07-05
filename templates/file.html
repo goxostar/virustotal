@@ -15,10 +15,10 @@
 
     <link rel="stylesheet" href="../static/style.css" />
 
-    <title>Home Page</title>
+    <title>File Scan</title>
   </head>
   <body>
-    <section id="homewelcome">
+    <section id="fileewelcome">
       <center>
         <br />
         <img
@@ -32,14 +32,12 @@
         <br />
         <br />
         <h2>Free Daily Limit = {{FREE_DAILY_LIMIT}}</h2>
+        <p>Uploaded File Name = {{name}}</p>
         <br />
-        <div class="gap-3 span2">
-          <a href="{{url_for('file')}}" class="btn btn-success custom">FILE</a>
-          <a href="{{url_for('home')}}" class="btn btn-primary custom">URL</a>
-          <a href="{{url_for('home')}}" class="btn btn-secondary custom"
-            >SEARCH</a
-          >
-        </div>
+        <form method=post enctype=multipart/form-data>
+        <input type=file name=file>
+        <input type=submit value=Upload>
+        </form>
       </center>
     </section>
 

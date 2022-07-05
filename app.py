@@ -1,11 +1,43 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, flash, render_template, request, redirect, url_for
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = './uploads'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SECRET_KEY'] = "ggggggggggggggggggggggggggggg"
 
 FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
 FREE_RATE_MINUTE = 60
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/file', methods=['GET', 'POST'])
+def file():
+    if request.method == 'GET':
+        return render_template('file.html', name=request.args.get('name', "You didn't upload yet."), FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('file', name=filename))
+    return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
+
 
 @app.route("/", methods=["GET", "POST"])
 def home():    
@@ -14,3 +46,4 @@ def home():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
+
