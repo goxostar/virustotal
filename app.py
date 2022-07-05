@@ -8,6 +8,7 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = "ggggggggggggggggggggggggggggg"
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1000 * 1000
 
 FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
@@ -19,6 +20,7 @@ def allowed_file(filename):
 
 @app.route('/file', methods=['GET', 'POST'])
 def file():
+    global FREE_DAILY_LIMIT
     if request.method == 'GET':
         return render_template('file.html', name=request.args.get('name', "You didn't upload yet."), FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
     if request.method == 'POST':
@@ -35,6 +37,7 @@ def file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
             return redirect(url_for('file', name=filename))
     return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
 
