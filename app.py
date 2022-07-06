@@ -1,5 +1,7 @@
 import os
 import requests
+import time
+import threading
 from ratelimit import limits, RateLimitException, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -18,6 +20,14 @@ app.config['MAX_CONTENT_LENGTH'] = 32 * 1000 * 1000
 FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
 FREE_RATE_MINUTE = 60
+
+# Thread function for resetting the daily limit every day
+def resetFreeDailyLimit():
+    global FREE_DAILY_LIMIT
+    while True:
+        FREE_DAILY_LIMIT = 500
+        time.sleep(86400) # sleep for 86400 seconds = 1 day
+        print("Waiting for the next day to reset the daily limit")
 
 # Store Hash of Files to prevent redundant upload
 already_uploaded = {}
@@ -119,6 +129,10 @@ def home():
     return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)    
 
 if __name__ == '__main__':
+    # Thread for reset daily limit every day
+    t = threading.Thread(target=resetFreeDailyLimit)
+    t.daemon = True
+    t.start()
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
-
+    
