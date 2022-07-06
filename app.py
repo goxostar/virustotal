@@ -13,10 +13,13 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = "ggggggggggggggggggggggggggggg"
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1000 * 1000
 
+# Free API Daily Limit = 500
+# Free API Request per minutes is 4
 FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
 FREE_RATE_MINUTE = 60
 
+# Store Hash of Files to prevent redundant upload
 already_uploaded = {}
 
 # Get the hash value of a file
