@@ -1,4 +1,7 @@
 import os
+import requests
+import time
+import threading, multiprocessing
 from flask import Flask, flash, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 
@@ -40,9 +43,50 @@ def file():
     return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
 
 @app.route("/filescan", methods=["GET", "POST"])
-def filescan():    
-    print (request.args.get('name'))
-    return render_template("filescan.html")  
+def filescan():  
+    htmlstatus = "Analyzing..."
+    points=0
+    # Get file name -> ex "testfile.txt"
+    fname = request.args.get('name')   
+    # File scan request  
+    url = "https://www.virustotal.com/api/v3/files"
+    files = {"file": open("./uploads/{}".format(fname), "rb")}
+    headers = {
+        "Accept": "application/json",
+        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+    }
+    response = requests.post(url, files=files, headers=headers)
+    
+    # Get file analysis id from response
+    analysis_id = response.json()['data']['id']  
+    # Analysis Request  
+    url = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+    headers = {
+        "Accept": "application/json",
+        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+    }
+    response = requests.get(url, headers=headers)
+    print("Status = ", response.json()['data']['attributes']['status'])
+                
+    # Get file analysis result  
+    if response.json()['data']['attributes']['status'] == "completed":
+        points = response.json()['data']['attributes']['stats']['suspicious'] + response.json()['data']['attributes']['stats']['malicious']
+        print("Points = ", points) 
+        htmlstatus = "Scan complete!"  
+        isMalicious = ""
+        if points > 0:
+            isMalicious = "Malicious"
+        else:
+            isMalicious = "Not malicious"        
+    else:
+        points = 0
+        htmlstatus = "Scanning..."
+        isMalicious = "Not scanned yet."        
+    return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious)
+
+@app.route("/filescancomplete", methods=["GET", "POST"])
+def filescancomplete():    
+    return render_template("filescancomplete.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)    
 
 @app.route("/", methods=["GET", "POST"])
 def home():    
