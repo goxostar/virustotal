@@ -84,7 +84,8 @@ def filescan():
         points = 0
         htmlstatus = "Scanning... Please come back after 1 minutes"
         isMalicious = "Not scanned yet."        
-    return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious, status=response.json()['data']['attributes']['status'])
+    return response.json()
+    # return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious, status=response.json()['data']['attributes']['status'])
 
 @app.route("/", methods=["GET", "POST"])
 def home():    
