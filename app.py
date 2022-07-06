@@ -43,7 +43,9 @@ def file():
     return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
 
 @app.route("/filescan", methods=["GET", "POST"])
-def filescan():  
+def filescan(): 
+    if request.args.get('name') is None:
+        return redirect(url_for('file'))
     htmlstatus = "Analyzing..."
     points=0
     # Get file name -> ex "testfile.txt"
@@ -82,7 +84,7 @@ def filescan():
         points = 0
         htmlstatus = "Scanning... Please come back after 1 minutes"
         isMalicious = "Not scanned yet."        
-    return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious)
+    return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious, status=response.json()['data']['attributes']['status'])
 
 @app.route("/", methods=["GET", "POST"])
 def home():    
