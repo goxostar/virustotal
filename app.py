@@ -84,10 +84,6 @@ def filescan():
         isMalicious = "Not scanned yet."        
     return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious)
 
-@app.route("/filescancomplete", methods=["GET", "POST"])
-def filescancomplete():    
-    return render_template("filescancomplete.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)    
-
 @app.route("/", methods=["GET", "POST"])
 def home():    
     return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)    
