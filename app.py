@@ -80,7 +80,7 @@ def filescan():
             isMalicious = "Not malicious"        
     else:
         points = 0
-        htmlstatus = "Scanning..."
+        htmlstatus = "Scanning... Please come back after 1 minutes"
         isMalicious = "Not scanned yet."        
     return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious)
 
