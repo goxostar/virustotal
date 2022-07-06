@@ -1,9 +1,9 @@
 import os
 import requests
-import time
-import threading, multiprocessing
+from ratelimit import limits, RateLimitException, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
+import hashlib
 
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -18,6 +18,16 @@ FREE_RATE = 4
 FREE_RATE_MINUTE = 60
 
 already_uploaded = {}
+
+# Get the hash value of a file
+def sha256sum(filename):
+    h  = hashlib.sha256()
+    b  = bytearray(128*1024)
+    mv = memoryview(b)
+    with open(filename, 'rb', buffering=0) as f:
+        for n in iter(lambda : f.readinto(mv), 0):
+            h.update(mv[:n])
+    return h.hexdigest()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -45,13 +55,17 @@ def file():
     return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
 
 @app.route("/filescan", methods=["GET", "POST"])
+@sleep_and_retry
+@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
 def filescan(): 
+    global FREE_DAILY_LIMIT
     if request.args.get('name') is None:
-        return redirect(url_for('file'))
-    htmlstatus = "Analyzing..."
-    points=0
+        return redirect(url_for('file'))    
+    
     # Get file name -> ex "testfile.txt"
+    # Get Hash value of file
     fname = request.args.get('name')  
+    filehash = sha256sum("./uploads/{}".format(fname))
 
     # File Request
     url_file = "https://www.virustotal.com/api/v3/files"
@@ -61,30 +75,40 @@ def filescan():
             "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
     }
     
-    # File scan request  
-    if fname in already_uploaded:
-        analysis_id = already_uploaded[fname]
-        # Analysis Request  
-        url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
-        headers_analysis = {
-        "Accept": "application/json",
-        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
-        }
-        response = requests.get(url_analysis, headers=headers_analysis)
-        return response.json()
-    else:        
-        response = requests.post(url_file, files=files, headers=headers_file)
-        # Get file analysis id from response
-        analysis_id = response.json()['data']['id']  
-        # Analysis Request  
-        url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
-        headers_analysis = {
-        "Accept": "application/json",
-        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
-        }       
-        response = requests.get(url_analysis, headers=headers_analysis)
-        already_uploaded[fname] = analysis_id
-        return response.json()      
+    # File scan request 
+    # Check file hash already uploaded 
+    if filehash in already_uploaded:
+        if FREE_DAILY_LIMIT>0:
+            analysis_id = already_uploaded[filehash]
+            # Analysis Request  
+            url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+            headers_analysis = {
+            "Accept": "application/json",
+            "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+            }
+            response = requests.get(url_analysis, headers=headers_analysis)
+            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+            return response.json()
+        else:
+            return "Daily limit reached"
+    else:
+        if FREE_DAILY_LIMIT>0:                   
+            response = requests.post(url_file, files=files, headers=headers_file)
+            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+            # Get file analysis id from response
+            analysis_id = response.json()['data']['id']  
+            # Analysis Request  
+            url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+            headers_analysis = {
+            "Accept": "application/json",
+            "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+            }       
+            response = requests.get(url_analysis, headers=headers_analysis)
+            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+            already_uploaded[filehash] = analysis_id            
+            return response.json()  
+        else:
+            return "Daily limit Reached"    
     
 
 @app.route("/", methods=["GET", "POST"])
