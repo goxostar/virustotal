@@ -17,6 +17,8 @@ FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
 FREE_RATE_MINUTE = 60
 
+already_uploaded = {}
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -49,43 +51,41 @@ def filescan():
     htmlstatus = "Analyzing..."
     points=0
     # Get file name -> ex "testfile.txt"
-    fname = request.args.get('name')   
-    # File scan request  
-    url = "https://www.virustotal.com/api/v3/files"
+    fname = request.args.get('name')  
+
+    # File Request
+    url_file = "https://www.virustotal.com/api/v3/files"
     files = {"file": open("./uploads/{}".format(fname), "rb")}
-    headers = {
-        "Accept": "application/json",
-        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+    headers_file = {
+            "Accept": "application/json",
+            "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
     }
-    response = requests.post(url, files=files, headers=headers)
     
-    # Get file analysis id from response
-    analysis_id = response.json()['data']['id']  
-    # Analysis Request  
-    url = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
-    headers = {
+    # File scan request  
+    if fname in already_uploaded:
+        analysis_id = already_uploaded[fname]
+        # Analysis Request  
+        url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+        headers_analysis = {
         "Accept": "application/json",
         "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
-    }
-    response = requests.get(url, headers=headers)
-    print("Status = ", response.json()['data']['attributes']['status'])
-                
-    # Get file analysis result  
-    if response.json()['data']['attributes']['status'] == "completed":
-        points = response.json()['data']['attributes']['stats']['suspicious'] + response.json()['data']['attributes']['stats']['malicious']
-        print("Points = ", points) 
-        htmlstatus = "Scan complete!"  
-        isMalicious = ""
-        if points > 0:
-            isMalicious = "Malicious"
-        else:
-            isMalicious = "Not malicious"        
-    else:
-        points = 0
-        htmlstatus = "Scanning... Please come back after 1 minutes"
-        isMalicious = "Not scanned yet."        
-    return response.json()
-    # return render_template("filescan.html", points=points, htmlstatus=htmlstatus, isMalicious=isMalicious, status=response.json()['data']['attributes']['status'])
+        }
+        response = requests.get(url_analysis, headers=headers_analysis)
+        return response.json()
+    else:        
+        response = requests.post(url_file, files=files, headers=headers_file)
+        # Get file analysis id from response
+        analysis_id = response.json()['data']['id']  
+        # Analysis Request  
+        url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+        headers_analysis = {
+        "Accept": "application/json",
+        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+        }       
+        response = requests.get(url_analysis, headers=headers_analysis)
+        already_uploaded[fname] = analysis_id
+        return response.json()      
+    
 
 @app.route("/", methods=["GET", "POST"])
 def home():    
