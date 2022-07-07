@@ -160,7 +160,7 @@ def search():
 
     if form.validate_on_submit():        
             
-        # Login Request with User Input
+        # Search Request with User Input
         search=form.search.data  
                          
 
