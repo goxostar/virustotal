@@ -162,9 +162,34 @@ def search():
             
         # Search Request with User Input
         search=form.search.data  
-                         
+        return redirect(url_for('searchscan', search=search))                          
 
     return render_template('search.html',form=form)
+
+@app.route('/searchscan', methods=['GET','POST'])
+@sleep_and_retry
+@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
+def searchscan():
+    global USED_DAILY_LIMIT
+    if request.args.get('search') is None:
+        return redirect(url_for('search'))  
+    
+    searchname = request.args.get('search')  
+
+    # Search Request
+    url_search = "https://www.virustotal.com/api/v3/search?query={}".format(searchname)
+    headers_search = {
+        "Accept": "application/json",
+        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+    }    
+
+    if USED_DAILY_LIMIT<500:            
+            response_search = requests.get(url_search, headers=headers_search) 
+            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1   
+            return response_search.json()
+    else:
+            return "Daily limit reached"   
+    
     
 @app.route('/urlscan', methods=['GET','POST'])
 @sleep_and_retry
