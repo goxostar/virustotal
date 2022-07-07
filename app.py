@@ -25,13 +25,14 @@ FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
 FREE_RATE_MINUTE = 60
 
-# Thread function for resetting the daily limit every day
-def resetFreeDailyLimit():
-    global FREE_DAILY_LIMIT
-    while True:
-        FREE_DAILY_LIMIT = 500
-        time.sleep(86400) # sleep for 86400 seconds = 1 day
-        print("Waiting for the next day to reset the daily limit")
+# VT API GET DAILY LIMIT 
+url_free_daily = "https://www.virustotal.com/api/v3/users/542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673/overall_quotas"
+headers_free_daily = {
+    "Accept": "application/json",
+    "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+}
+response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
+USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
 
 # Store Hash of Files to prevent redundant upload
 already_uploaded = {}
@@ -89,6 +90,7 @@ def file():
 @limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
 def filescan(): 
     global FREE_DAILY_LIMIT
+    global USED_DAILY_LIMIT
     if request.args.get('name') is None:
         return redirect(url_for('file'))    
     
@@ -104,11 +106,11 @@ def filescan():
             "Accept": "application/json",
             "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
     }
-    
+        
     # File scan request 
     # Check file hash already uploaded 
-    if filehash in already_uploaded:
-        if FREE_DAILY_LIMIT>0:
+    if filehash in already_uploaded:               
+        if USED_DAILY_LIMIT<500:
             analysis_id = already_uploaded[filehash]
             # Analysis Request  
             url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
@@ -116,15 +118,13 @@ def filescan():
             "Accept": "application/json",
             "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
             }
-            response = requests.get(url_analysis, headers=headers_analysis)
-            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+            response = requests.get(url_analysis, headers=headers_analysis)     
             return response.json()
         else:
             return "Daily limit reached"
-    else:
-        if FREE_DAILY_LIMIT>0:                   
-            response = requests.post(url_file, files=files, headers=headers_file)
-            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+    else:        
+        if USED_DAILY_LIMIT<500:                  
+            response = requests.post(url_file, files=files, headers=headers_file)            
             # Get file analysis id from response
             analysis_id = response.json()['data']['id']  
             # Analysis Request  
@@ -134,7 +134,7 @@ def filescan():
             "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
             }       
             response = requests.get(url_analysis, headers=headers_analysis)
-            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
             already_uploaded[filehash] = analysis_id            
             return response.json()  
         else:
@@ -172,6 +172,7 @@ def search():
 def urlscan():
 
     global FREE_DAILY_LIMIT
+    global USED_DAILY_LIMIT
 
     if request.args.get('url') is None:
         return redirect(url_for('url'))
@@ -202,7 +203,7 @@ def urlscan():
     }
 
     if urlname in already_scanned_url:
-        if FREE_DAILY_LIMIT>0:
+        if USED_DAILY_LIMIT<500:
             analysis_id = already_scanned_url[urlname]
             # Analysis Request  
             url_analysis = "https://www.virustotal.com/api/v3/urls/{}".format(analysis_id)
@@ -211,14 +212,13 @@ def urlscan():
                 "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
             }
             response = requests.get(url_analysis, headers=headers_analysis)
-            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
             return response.json()
         else:
             return "Daily limit reached"
     else:
-        if FREE_DAILY_LIMIT>0:
-            response = requests.post(url_scan, data=payload, headers=headers_url)
-            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
+        if USED_DAILY_LIMIT<500:
+            response = requests.post(url_scan, data=payload, headers=headers_url)            
             # Get url analysis id from response            
             analysis_id = response.json()['data']['id'].split("-")[1]
             # Analysis Request  
@@ -227,9 +227,9 @@ def urlscan():
                 "Accept": "application/json",
                 "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
             }       
-            response = requests.get(url_analysis, headers=headers_analysis)
-            FREE_DAILY_LIMIT = FREE_DAILY_LIMIT - 1
-            already_scanned_url[urlname] = analysis_id            
+            response = requests.get(url_analysis, headers=headers_analysis)            
+            already_scanned_url[urlname] = analysis_id   
+            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 2         
             return response.json()  
         else:
             return "Daily limit Reached"
@@ -237,13 +237,9 @@ def urlscan():
 
 @app.route("/", methods=["GET", "POST"])
 def home():    
-    return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)    
+    return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT, USED_DAILY_LIMIT=USED_DAILY_LIMIT)  
 
-if __name__ == '__main__':
-    # Thread for reset daily limit every day
-    t = threading.Thread(target=resetFreeDailyLimit)
-    t.daemon = True
-    t.start()
+if __name__ == '__main__':    
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
     
