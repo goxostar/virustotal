@@ -1,7 +1,5 @@
 import os
 import requests
-import time
-import threading
 from ratelimit import limits, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_wtf import FlaskForm
