@@ -58,6 +58,11 @@ class UrlForm(FlaskForm):
 
   submit = SubmitField('Lookup')
 
+class SearchForm(FlaskForm):
+  search = StringField(validators=[InputRequired(), Length(min=1, max=100)], render_kw={"placeholder": "Domain & URL & IP"})
+
+  submit = SubmitField('Search')
+
 @app.route('/file', methods=['GET', 'POST'])
 def file():
     global FREE_DAILY_LIMIT
@@ -147,6 +152,19 @@ def url():
         return redirect(url_for('urlscan', url=url))                 
 
     return render_template('url.html',form=form)
+
+@app.route('/search', methods=['GET','POST'])
+def search():
+
+    form = SearchForm()
+
+    if form.validate_on_submit():        
+            
+        # Login Request with User Input
+        search=form.search.data  
+                         
+
+    return render_template('search.html',form=form)
     
 @app.route('/urlscan', methods=['GET','POST'])
 @sleep_and_retry
