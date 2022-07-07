@@ -2,12 +2,12 @@ import os
 import requests
 import time
 import threading
-from ratelimit import limits, RateLimitException, sleep_and_retry
+from ratelimit import limits, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_wtf import FlaskForm
 from sqlalchemy import false, true
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired, Length, ValidationError
+from wtforms import StringField, SubmitField
+from wtforms.validators import InputRequired, Length
 from werkzeug.utils import secure_filename
 import hashlib
 
