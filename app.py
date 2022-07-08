@@ -17,6 +17,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = "ggggggggggggggggggggggggggggg"
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1000 * 1000
 
+# API KEYS (WILL BE ADDED TO ENV VARIABLES)
+FREE_API_KEY = "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+PREMIUM_API_KEY = "PREMIUMAPIKEY"
+
 # Free API Daily Limit = 500
 # Free API Request per minutes is 4
 FREE_DAILY_LIMIT = 500
@@ -24,10 +28,10 @@ FREE_RATE = 4
 FREE_RATE_MINUTE = 60
 
 # VT API GET DAILY LIMIT 
-url_free_daily = "https://www.virustotal.com/api/v3/users/542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673/overall_quotas"
+url_free_daily = "https://www.virustotal.com/api/v3/users/{}/overall_quotas".format(FREE_API_KEY)
 headers_free_daily = {
     "Accept": "application/json",
-    "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+    "x-apikey": "{}".format(FREE_API_KEY)
 }
 response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
 USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
@@ -102,7 +106,7 @@ def filescan():
     files = {"file": open("./uploads/{}".format(fname), "rb")}
     headers_file = {
             "Accept": "application/json",
-            "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+            "x-apikey": "{}".format(FREE_API_KEY)
     }
         
     # File scan request 
@@ -114,7 +118,7 @@ def filescan():
             url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
             headers_analysis = {
             "Accept": "application/json",
-            "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+            "x-apikey": "{}".format(FREE_API_KEY)
             }
             response = requests.get(url_analysis, headers=headers_analysis)     
             return response.json()
@@ -129,7 +133,7 @@ def filescan():
             url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
             headers_analysis = {
             "Accept": "application/json",
-            "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+            "x-apikey": "{}".format(FREE_API_KEY)
             }       
             response = requests.get(url_analysis, headers=headers_analysis)
             USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
@@ -178,7 +182,7 @@ def searchscan():
     url_search = "https://www.virustotal.com/api/v3/search?query={}".format(searchname)
     headers_search = {
         "Accept": "application/json",
-        "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+        "x-apikey": "{}".format(FREE_API_KEY)
     }    
 
     if USED_DAILY_LIMIT<500:            
@@ -221,7 +225,7 @@ def urlscan():
     payload = "url={}".format(urlname)
     headers_url = {
     "Accept": "application/json",
-    "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673",
+    "x-apikey": "{}".format(FREE_API_KEY),
     "Content-Type": "application/x-www-form-urlencoded"
     }
 
@@ -232,7 +236,7 @@ def urlscan():
             url_analysis = "https://www.virustotal.com/api/v3/urls/{}".format(analysis_id)
             headers_analysis = {
                 "Accept": "application/json",
-                "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+                "x-apikey": "{}".format(FREE_API_KEY)
             }
             response = requests.get(url_analysis, headers=headers_analysis)
             USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
@@ -248,7 +252,7 @@ def urlscan():
             url_analysis = "https://www.virustotal.com/api/v3/urls/{}".format(analysis_id)
             headers_analysis = {
                 "Accept": "application/json",
-                "x-apikey": "542883fc18664cc7ae3dab65b8245384b08386329ec29e43ebaa6511526e7673"
+                "x-apikey": "{}".format(FREE_API_KEY)
             }       
             response = requests.get(url_analysis, headers=headers_analysis)            
             already_scanned_url[urlname] = analysis_id   
