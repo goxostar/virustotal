@@ -95,8 +95,8 @@ def file():
     return render_template("file.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT)
 
 @app.route("/filescan", methods=["GET", "POST"])
-@sleep_and_retry
-@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
+#@sleep_and_retry
+#@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
 def filescan(): 
     global FREE_DAILY_LIMIT
     global USED_DAILY_LIMIT
@@ -200,8 +200,8 @@ def search():
     return render_template('search.html',form=form)
 
 @app.route('/searchscan', methods=['GET','POST'])
-@sleep_and_retry
-@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
+#@sleep_and_retry
+#@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
 def searchscan():
     global USED_DAILY_LIMIT
     if request.args.get('search') is None:
@@ -215,18 +215,26 @@ def searchscan():
         "Accept": "application/json",
         "x-apikey": "{}".format(FREE_API_KEY)
     }    
+    headers_search_premium = {
+        "Accept": "application/json",
+        "x-apikey": "{}".format(PREMIUM_API_KEY)
+    }  
 
     if USED_DAILY_LIMIT<500:            
-            response_search = requests.get(url_search, headers=headers_search) 
-            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1   
-            return response_search.json()
+        response_search = requests.get(url_search, headers=headers_search) 
+        USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1   
+        return response_search.json()
+    elif PREMIUM_USED_LIMIT<100:
+        response_search = requests.get(url_search, headers=headers_search_premium) 
+        PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1   
+        return response_search.json()
     else:
-            return "Daily limit reached"   
+            return "Limit reached"   
     
     
 @app.route('/urlscan', methods=['GET','POST'])
-@sleep_and_retry
-@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
+#@sleep_and_retry
+#@limits(calls=FREE_RATE, period=FREE_RATE_MINUTE)
 def urlscan():
 
     global FREE_DAILY_LIMIT
