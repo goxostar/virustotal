@@ -319,9 +319,29 @@ def urlscan():
             return "Limit Reached"
 
 
+# PREMIUM INTELLEGENCE SEARCH
+@app.route('/searchscan_premium', methods=['GET','POST'])
+def searchscan_premium():    
+    global PREMIUM_USED_LIMIT    
+    if request.args.get('search') is None:
+        return redirect(url_for('search_premium'))
+    search = request.args.get('search') 
+
+    url = "https://www.virustotal.com/api/v3/intelligence/search?query={}&limit=10&descriptors_only=false".format(search)
+    headers = {
+        "Accept": "application/json",
+        "x-apikey": "{}".format(PREMIUM_API_KEY)
+    }
+    if PREMIUM_USED_LIMIT<100:            
+            response = requests.get(url, headers=headers)
+            PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1   
+            return response.json()
+    else:
+            return "Limit reached"    
+
 @app.route("/", methods=["GET", "POST"])
 def home():    
-    return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT, USED_DAILY_LIMIT=USED_DAILY_LIMIT)  
+    return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT, USED_DAILY_LIMIT=USED_DAILY_LIMIT) 
 
 if __name__ == '__main__':    
     port = int(os.environ.get('PORT', 5000))
