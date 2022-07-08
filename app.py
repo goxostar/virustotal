@@ -27,6 +27,9 @@ FREE_DAILY_LIMIT = 500
 FREE_RATE = 4
 FREE_RATE_MINUTE = 60
 
+# PREMIUM LIMIT
+PREMIUM_LIMIT = 100
+
 # VT API GET DAILY LIMIT 
 url_free_daily = "https://www.virustotal.com/api/v3/users/{}/overall_quotas".format(FREE_API_KEY)
 headers_free_daily = {
@@ -35,6 +38,10 @@ headers_free_daily = {
 }
 response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
 USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
+
+# VT GET PREMIUM API LIMIT
+# WIL GET PREMIUM API LIMIT
+PREMIUM_USED_LIMIT = 0
 
 # Store Hash of Files to prevent redundant upload
 already_uploaded = {}
@@ -122,8 +129,18 @@ def filescan():
             }
             response = requests.get(url_analysis, headers=headers_analysis)     
             return response.json()
+        elif PREMIUM_USED_LIMIT<100:
+            analysis_id = already_uploaded[filehash]
+            # Analysis Request  
+            url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+            headers_analysis = {
+            "Accept": "application/json",
+            "x-apikey": "{}".format(PREMIUM_API_KEY)
+            }
+            response = requests.get(url_analysis, headers=headers_analysis)     
+            return response.json()
         else:
-            return "Daily limit reached"
+            return "Limit reached"
     else:        
         if USED_DAILY_LIMIT<500:                  
             response = requests.post(url_file, files=files, headers=headers_file)            
@@ -139,8 +156,22 @@ def filescan():
             USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
             already_uploaded[filehash] = analysis_id            
             return response.json()  
+        elif PREMIUM_USED_LIMIT<100:
+            response = requests.post(url_file, files=files, headers=headers_file)            
+            # Get file analysis id from response
+            analysis_id = response.json()['data']['id']  
+            # Analysis Request  
+            url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
+            headers_analysis = {
+            "Accept": "application/json",
+            "x-apikey": "{}".format(PREMIUM_API_KEY)
+            }       
+            response = requests.get(url_analysis, headers=headers_analysis)
+            PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1
+            already_uploaded[filehash] = analysis_id            
+            return response.json() 
         else:
-            return "Daily limit Reached"    
+            return "Limit Reached"    
 
 @app.route('/url', methods=['GET','POST'])
 def url():
