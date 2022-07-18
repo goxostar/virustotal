@@ -1,0 +1,94 @@
+{
+	"info": {
+		"_postman_id": "c7c72188-ebe7-4175-9819-f72352b3ad26",
+		"name": "Virustotal App",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19980450"
+	},
+	"item": [
+		{
+			"name": "Url Scan",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/urlscan?url=www.github.com",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"urlscan"
+					],
+					"query": [
+						{
+							"key": "url",
+							"value": "www.github.com"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search Scan (Domain, IP, etc.)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/searchscan?search=172.217.169.174",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"searchscan"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "172.217.169.174"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "File Scan",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/filescan?name=testfile.txt",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"filescan"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "testfile.txt"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
