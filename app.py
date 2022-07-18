@@ -15,7 +15,7 @@ UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 redis = redis.Redis(
-     host= 'localhost',
+     host= 'redis',
      port= '6379')
 #redis.set('mykey', 'Hello from Python!')
 #redis.get('mykey')
