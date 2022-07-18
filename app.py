@@ -268,6 +268,11 @@ def urlscan():
     "x-apikey": "{}".format(FREE_API_KEY),
     "Content-Type": "application/x-www-form-urlencoded"
     }
+    headers_url_premium = {
+    "Accept": "application/json",
+    "x-apikey": "{}".format(PREMIUM_API_KEY),
+    "Content-Type": "application/x-www-form-urlencoded"
+    }
 
     if urlname in already_scanned_url:
         if USED_DAILY_LIMIT<500:
@@ -310,7 +315,7 @@ def urlscan():
             USED_DAILY_LIMIT = USED_DAILY_LIMIT + 2         
             return response.json()  
         elif PREMIUM_USED_LIMIT<100:
-            response = requests.post(url_scan, data=payload, headers=headers_url)            
+            response = requests.post(url_scan, data=payload, headers=headers_url_premium)            
             # Get url analysis id from response            
             analysis_id = response.json()['data']['id'].split("-")[1]
             # Analysis Request  
