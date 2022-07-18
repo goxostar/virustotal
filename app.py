@@ -1,6 +1,7 @@
 import os
 import requests
 import redis
+import json
 from ratelimit import limits, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_wtf import FlaskForm
@@ -280,33 +281,10 @@ def urlscan():
     "Accept": "application/json",
     "x-apikey": "{}".format(PREMIUM_API_KEY),
     "Content-Type": "application/x-www-form-urlencoded"
-    }
+    }    
 
-    if urlname in already_scanned_url:
-        if USED_DAILY_LIMIT<500:
-            analysis_id = already_scanned_url[urlname]
-            # Analysis Request  
-            url_analysis = "https://www.virustotal.com/api/v3/urls/{}".format(analysis_id)
-            headers_analysis = {
-                "Accept": "application/json",
-                "x-apikey": "{}".format(FREE_API_KEY)
-            }
-            response = requests.get(url_analysis, headers=headers_analysis)
-            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
-            return response.json()
-        elif PREMIUM_USED_LIMIT<100:
-            analysis_id = already_scanned_url[urlname]
-            # Analysis Request  
-            url_analysis = "https://www.virustotal.com/api/v3/urls/{}".format(analysis_id)
-            headers_analysis = {
-                "Accept": "application/json",
-                "x-apikey": "{}".format(PREMIUM_API_KEY)
-            }
-            response = requests.get(url_analysis, headers=headers_analysis)
-            PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1
-            return response.json()
-        else:
-            return "Limit reached"
+    if redis.exists(urlname) == 1:
+        return json.loads(redis.get(urlname))
     else:
         if USED_DAILY_LIMIT<500:
             response = requests.post(url_scan, data=payload, headers=headers_url)            
@@ -318,10 +296,10 @@ def urlscan():
                 "Accept": "application/json",
                 "x-apikey": "{}".format(FREE_API_KEY)
             }       
-            response = requests.get(url_analysis, headers=headers_analysis)            
-            already_scanned_url[urlname] = analysis_id   
-            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 2         
-            return response.json()  
+            response = requests.get(url_analysis, headers=headers_analysis)       
+            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 2  
+            redis.set(urlname, json.dumps(dict(response.json())))                    
+            return json.loads(redis.get(urlname))
         elif PREMIUM_USED_LIMIT<100:
             response = requests.post(url_scan, data=payload, headers=headers_url_premium)            
             # Get url analysis id from response            
@@ -332,10 +310,10 @@ def urlscan():
                 "Accept": "application/json",
                 "x-apikey": "{}".format(PREMIUM_API_KEY)
             }       
-            response = requests.get(url_analysis, headers=headers_analysis)            
-            already_scanned_url[urlname] = analysis_id   
+            response = requests.get(url_analysis, headers=headers_analysis)        
             PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 2         
-            return response.json() 
+            redis.set(urlname, json.dumps(dict(response.json())))                    
+            return json.loads(redis.get(urlname)) 
         else:
             return "Limit Reached"
 
