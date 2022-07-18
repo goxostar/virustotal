@@ -1,5 +1,6 @@
 import os
 import requests
+import redis
 from ratelimit import limits, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_wtf import FlaskForm
@@ -11,6 +12,13 @@ import hashlib
 
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+redis = redis.Redis(
+     host= 'localhost',
+     port= '6379')
+#redis.set('mykey', 'Hello from Python!')
+#value = redis.get('mykey')
+#print(value)
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
