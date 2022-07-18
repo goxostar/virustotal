@@ -271,13 +271,14 @@ def urlscan():
             else:
                 return false
     
-    if validate(urlname) != true:
-        return redirect(url_for('url'))  
+    #if validate(urlname) != true:
+    #   return redirect(url_for('url'))  
 
     # Making Url a Format, to prevent reduntant requests
-    # Ex: http://www.google.com = www.google.com
+    # Ex: http://www.google.com -> www.google.com -> google.com
     urlname=urlname.replace('http://','')
-    urlname=urlname.replace('https://','')                
+    urlname=urlname.replace('https://','')    
+    urlname=urlname.replace('www.','')            
 
     # URL Request
     url_scan = "https://www.virustotal.com/api/v3/urls"
