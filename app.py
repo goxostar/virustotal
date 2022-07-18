@@ -276,6 +276,7 @@ def urlscan():
 
     # Making Url a Format, to prevent reduntant requests
     # Ex: http://www.google.com -> www.google.com -> google.com
+    # Otherwise http://www.google.com & www.google.com will be scanned twice
     urlname=urlname.replace('http://','')
     urlname=urlname.replace('https://','')    
     urlname=urlname.replace('www.','')            
