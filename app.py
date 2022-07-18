@@ -17,8 +17,8 @@ redis = redis.Redis(
      host= 'localhost',
      port= '6379')
 #redis.set('mykey', 'Hello from Python!')
-#value = redis.get('mykey')
-#print(value)
+#redis.get('mykey')
+#redis.exists('mykey')
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
