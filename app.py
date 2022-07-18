@@ -229,15 +229,20 @@ def searchscan():
         "x-apikey": "{}".format(PREMIUM_API_KEY)
     }  
 
-    if USED_DAILY_LIMIT<500:            
-        response_search = requests.get(url_search, headers=headers_search) 
-        USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1   
-        return response_search.json()
-    elif PREMIUM_USED_LIMIT<100:
-        response_search = requests.get(url_search, headers=headers_search_premium) 
-        PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1   
-        return response_search.json()
-    else:
+    if redis.exists(searchname) == 1:
+        return json.loads(redis.get(searchname))
+    else:       
+        if USED_DAILY_LIMIT<500:            
+            response_search = requests.get(url_search, headers=headers_search) 
+            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1   
+            redis.set(searchname, json.dumps(dict(response_search.json())))                    
+            return json.loads(redis.get(searchname))
+        elif PREMIUM_USED_LIMIT<100:
+            response_search = requests.get(url_search, headers=headers_search_premium) 
+            PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1   
+            redis.set(searchname, json.dumps(dict(response_search.json())))                    
+            return json.loads(redis.get(searchname))
+        else:
             return "Limit reached"   
     
     
@@ -331,11 +336,16 @@ def searchscan_premium():
         "Accept": "application/json",
         "x-apikey": "{}".format(PREMIUM_API_KEY)
     }
-    if PREMIUM_USED_LIMIT<100:            
+
+    if redis.exists(search) == 1:
+        return json.loads(redis.get(search))
+    else:
+        if PREMIUM_USED_LIMIT<100:            
             response = requests.get(url, headers=headers)
             PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1   
-            return response.json()
-    else:
+            redis.set(search, json.dumps(dict(response.json())))                    
+            return json.loads(redis.get(search))
+        else:
             return "Limit reached"    
 
 @app.route("/", methods=["GET", "POST"])
