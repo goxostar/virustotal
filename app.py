@@ -266,13 +266,18 @@ def urlscan():
     def validate(url):
         for pre in prefixes:
             url = url.strip(pre)
-            if url.startswith("www"):
+            if url.startswith("www"):                
                 return true
             else:
                 return false
     
     if validate(urlname) != true:
-        return redirect(url_for('url'))                
+        return redirect(url_for('url'))  
+
+    # Making Url a Format, to prevent reduntant requests
+    # Ex: http://www.google.com = www.google.com
+    urlname=urlname.replace('http://','')
+    urlname=urlname.replace('https://','')                
 
     # URL Request
     url_scan = "https://www.virustotal.com/api/v3/urls"
