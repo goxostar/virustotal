@@ -12,7 +12,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:5000/urlscan?url=www.github.com",
+					"raw": "http://127.0.0.1:5000/urlscan?url=github.com",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -27,7 +27,7 @@
 					"query": [
 						{
 							"key": "url",
-							"value": "www.github.com"
+							"value": "github.com"
 						}
 					]
 				}
@@ -56,6 +56,34 @@
 						{
 							"key": "search",
 							"value": "172.217.169.174"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Premium Intellegence Search",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/searchscan_premium?search=google.com",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"searchscan_premium"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "google.com"
 						}
 					]
 				}
