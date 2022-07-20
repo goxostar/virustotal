@@ -218,6 +218,12 @@ def searchscan():
     
     searchname = request.args.get('search')  
 
+    prefixes = ['http://', 'https://', 'www.']
+    if searchname.startswith(tuple(prefixes)):
+        searchname = searchname.replace('http://', '')
+        searchname = searchname.replace('https://', '')
+        searchname = searchname.replace('www.', '')
+
     # Search Request
     url_search = "https://www.virustotal.com/api/v3/search?query={}".format(searchname)
     headers_search = {
