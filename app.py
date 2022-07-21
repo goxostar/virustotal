@@ -2,6 +2,8 @@ import os
 import requests
 import redis
 import json
+import threading
+import time
 from ratelimit import limits, sleep_and_retry
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_wtf import FlaskForm
@@ -47,6 +49,16 @@ headers_free_daily = {
 }
 response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
 USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
+
+# Thread for updating used daily limit every 24h
+def check_free_daily_Thread():
+    global USED_DAILY_LIMIT
+    while true:
+        response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
+        USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
+        # 24h sleep
+        print("Free used daily quota updated! It is {}/500! Waiting 24h for next update...".format(USED_DAILY_LIMIT))
+        time.sleep(86400)      
 
 # VT GET PREMIUM API LIMIT
 # WIL GET PREMIUM API LIMIT
@@ -365,7 +377,9 @@ def searchscan_premium():
 def home():    
     return render_template("home.html", FREE_DAILY_LIMIT=FREE_DAILY_LIMIT, USED_DAILY_LIMIT=USED_DAILY_LIMIT) 
 
-if __name__ == '__main__':    
+if __name__ == '__main__':  
+    thread_free_daily = threading.Thread(target=check_free_daily_Thread, daemon=True)
+    thread_free_daily.start()
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
     
