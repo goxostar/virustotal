@@ -55,9 +55,6 @@ PREMIUM_USED_LIMIT = 0
 # Store Hash of Files to prevent redundant upload
 already_uploaded = {}
 
-# Store already scanned urls
-already_scanned_url = {}
-
 # Get the hash value of a file
 def sha256sum(filename):
     h  = hashlib.sha256()
@@ -162,7 +159,8 @@ def filescan():
             "x-apikey": "{}".format(FREE_API_KEY)
             }       
             response = requests.get(url_analysis, headers=headers_analysis)
-            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1
+            response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
+            USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
             already_uploaded[filehash] = analysis_id            
             return response.json()  
         elif PREMIUM_USED_LIMIT<100:
@@ -239,8 +237,9 @@ def searchscan():
         return json.loads(redis.get(searchname))
     else:       
         if USED_DAILY_LIMIT<500:            
-            response_search = requests.get(url_search, headers=headers_search) 
-            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 1   
+            response_search = requests.get(url_search, headers=headers_search)
+            response_free_daily = requests.get(url_free_daily, headers=headers_free_daily) 
+            USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']   
             redis.set(searchname, json.dumps(dict(response_search.json())))                    
             return json.loads(redis.get(searchname))
         elif PREMIUM_USED_LIMIT<100:
@@ -314,8 +313,9 @@ def urlscan():
                 "Accept": "application/json",
                 "x-apikey": "{}".format(FREE_API_KEY)
             }       
-            response = requests.get(url_analysis, headers=headers_analysis)       
-            USED_DAILY_LIMIT = USED_DAILY_LIMIT + 2  
+            response = requests.get(url_analysis, headers=headers_analysis) 
+            response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)      
+            USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']  
             redis.set(urlname, json.dumps(dict(response.json())))                    
             return json.loads(redis.get(urlname))
         elif PREMIUM_USED_LIMIT<100:
