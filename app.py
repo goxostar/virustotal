@@ -64,9 +64,6 @@ def check_free_daily_Thread():
 # WIL GET PREMIUM API LIMIT
 PREMIUM_USED_LIMIT = 0
 
-# Store Hash of Files to prevent redundant upload
-already_uploaded = {}
-
 # Get the hash value of a file
 def sha256sum(filename):
     h  = hashlib.sha256()
