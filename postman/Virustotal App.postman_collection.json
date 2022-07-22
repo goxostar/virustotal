@@ -12,7 +12,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:5000/urlscan?url=github.com",
+					"raw": "http://127.0.0.1:5000/urlscan?url=www.youtube.com",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -27,7 +27,7 @@
 					"query": [
 						{
 							"key": "url",
-							"value": "github.com"
+							"value": "www.youtube.com"
 						}
 					]
 				}
