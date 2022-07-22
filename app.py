@@ -136,19 +136,19 @@ def filescan():
         
     # File scan request 
     # Check file hash already uploaded 
-    if filehash in already_uploaded:               
+    if redis.exists(filehash) == 1:               
         if USED_DAILY_LIMIT<500:
-            analysis_id = already_uploaded[filehash]
+            analysis_id = redis.get(filehash).decode('utf-8')            
             # Analysis Request  
             url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
             headers_analysis = {
             "Accept": "application/json",
             "x-apikey": "{}".format(FREE_API_KEY)
             }
-            response = requests.get(url_analysis, headers=headers_analysis)     
+            response = requests.get(url_analysis, headers=headers_analysis)              
             return response.json()
         elif PREMIUM_USED_LIMIT<100:
-            analysis_id = already_uploaded[filehash]
+            analysis_id = redis.get(filehash).decode('utf-8')
             # Analysis Request  
             url_analysis = "https://www.virustotal.com/api/v3/analyses/{}".format(analysis_id)
             headers_analysis = {
@@ -173,7 +173,7 @@ def filescan():
             response = requests.get(url_analysis, headers=headers_analysis)
             response_free_daily = requests.get(url_free_daily, headers=headers_free_daily)
             USED_DAILY_LIMIT = response_free_daily.json()['data']['api_requests_daily']['user']['used']
-            already_uploaded[filehash] = analysis_id            
+            redis.set(filehash, analysis_id)                       
             return response.json()  
         elif PREMIUM_USED_LIMIT<100:
             response = requests.post(url_file, files=files, headers=headers_file)            
@@ -187,7 +187,7 @@ def filescan():
             }       
             response = requests.get(url_analysis, headers=headers_analysis)
             PREMIUM_USED_LIMIT = PREMIUM_USED_LIMIT + 1
-            already_uploaded[filehash] = analysis_id            
+            redis.set(filehash, analysis_id)                     
             return response.json() 
         else:
             return "Limit Reached"    
